@@ -37,10 +37,10 @@ The back end currently just shells out to the GPG command (/usr/bin/env gpg) - I
 Contact
 =======
 
-Author: Craig Dunn
-Email: craig@craigdunn.org
-Twitter: @crayfishX
-IRC (Freenode): crayfishx
-Web: http://www.craigdunn.org
+* Author: Craig Dunn
+* Email: craig@craigdunn.org
+* Twitter: @crayfishX
+* IRC (Freenode): crayfishx
+* Web: http://www.craigdunn.org
 
 
