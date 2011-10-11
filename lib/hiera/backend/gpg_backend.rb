@@ -1,63 +1,55 @@
 class Hiera
-    module Backend
-        class Gpg_backend
-            def lookup(key, scope, order_override, resolution_type)
-                Hiera.debug("loaded gpg_backend")
-                answer = Backend.empty_answer(resolution_type)
+  module Backend
+    class Gpg_backend
 
-                Backend.datasources(scope, order_override) do |source|
-                    gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
-                
-                    
-                    Hiera.debug("Loading file #{gpgfile}")
+      require 'gpgme'
 
-                    ## Homedir is the location of our GPG private keys
-                    ## default: ~/.gnupg
-                    homedir = Config[:gpg][:homedir] || ""
+      def lookup(key, scope, order_override, resolution_type)
+        Hiera.debug("loaded gpg_backend")
+        answer = Backend.empty_answer(resolution_type)
 
-                    plain = decrypt(gpgfile, homedir)
-
-                    if plain.empty?
-                        Hiera.debug("GPG decrypt returned empty string")
-                        next
-                    end
-
-                    data = YAML.load(plain)
-
-                    next if data.empty?
-                    next unless data.include?(key)
+        Backend.datasources(scope, order_override) do |source|
+          gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
 
 
-                    case resolution_type
-                        when :array
-                            answer << Backend.parse_answer(data[key], scope)
-                        else
-                            answer = Backend.parse_answer(data[key], scope)
-                            break
-                        end
-                    end
-                    return answer
-                
+          ## Homedir is the location of our GPG private keys
+          ## default: ~/.gnupg
+          homedir = Config[:gpg][:homedir] || ""
+          key_id = Config[:gpg][:key_id] || nil
+
+          key_check(key_id) unless key_id.nil?
+
+          decrypt(gpgfile) do |plain|
+            data = YAML.load(plain)
+
+            case resolution_type
+            when :array
+              answer << Backend.parse_answer(data[key], scope)
+            else
+              answer = Backend.parse_answer(data[key], scope)
             end
-         
 
-            def decrypt (file, homedir)
-                # This should be tied in with the gpgme API, but for now
-                # we just shell this out to the gpg command, a future todo
-                # is to replace this.
-                #
+          end
 
-                opts = ["--decrypt"]
-                if !homedir.empty?
-                    opts << "--homedir #{homedir}"
-                end
+          answer
 
-                data = `/usr/bin/env gpg #{opts.join(" ")} < #{file} 2> /dev/null`
-                Hiera.debug("Return code of gpg command was #{$?}")
-                return data
-            end
         end
+      end
+
+      def decrypt(file)
+        abort "No file: #{file}" unless File.file? file
+        open(file) do |cipher|
+          Hiera.debug("loaded cipher: #{file}")
+          yield GPGME.decrypt(cipher)
+        end
+      end
+
+      def key_check(id)
+        raise ArgumentError, "No id passed to key_check method." if id.empty?
+        raise StandardError, "No match for GPG key id: #{id} if GPGME::list_keys(id, true).empty?
+      end
     end
+  end
 end
 
 
