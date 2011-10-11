@@ -44,9 +44,10 @@ class Hiera
         end
       end
 
+      # How valuable is this? - AK
       def key_check(id)
         raise ArgumentError, "No id passed to key_check method." if id.empty?
-        raise StandardError, "No match for GPG key id: #{id} if GPGME::list_keys(id, true).empty?
+        raise StandardError, "No match for GPG key id: #{id}" if GPGME::list_keys(id, true).empty?
       end
     end
   end
