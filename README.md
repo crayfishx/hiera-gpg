@@ -22,17 +22,32 @@ Here is a sample hiera.yaml file that will work with gpg
             - common
 
 :gpg:
-   :datadir: /etc/puppet/hieradata
+   :datadir: /etc/hiera/data
 
    # Optional, defaults to ~/.gnupg
-   :homedir: "/etc/puppet/gpg"
+   :key_dir: /etc/hiera/gpg
 </pre>
 
-Todo
+
+By default hiera-gpg will look for GPG keys in the users' home directory (~/.gnupg) - if you want to install your secret keys somewhere else, the :key_dir: setting will override the GNUPGHOME environment variable and cause GPG to look there instead.  Note: in 0.x releases this setting is called "homedir"
+
+
+GPG Back end
+============
+
+hiera-gpg 0.1.0+ shells out to the command line and assumes that /usr/bin/env gpg is in your path.  As of 1.0 it uses the gpgme rubygem to do all the GPG related stuff.  If for any reason you have problems with gpgme then you may want to downgrade to the latest 0.x release.
+
+
+TODO
 ====
 
-The back end currently just shells out to the GPG command (/usr/bin/env gpg) - I would like to implement this without shelling out, perhaps by using the gpgme API.  Perhaps someone would care to fork it and look at doing that :)
+* Add hash support
 
+
+Further Reading
+===============
+
+* http://www.craigdunn.org/2011/10/secret-variables-in-puppet-with-hiera-and-gpg/
 
 Contact
 =======
