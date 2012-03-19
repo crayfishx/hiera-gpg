@@ -1,60 +1,90 @@
 class Hiera
     module Backend
         class Gpg_backend
-            def lookup(key, scope, order_override, resolution_type)
-                Hiera.debug("loaded gpg_backend")
-                answer = Backend.empty_answer(resolution_type)
 
-                Backend.datasources(scope, order_override) do |source|
-                    gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
-                
-                    
-                    Hiera.debug("Loading file #{gpgfile}")
+        def initialize 
+            require 'gpgme'
+            debug ("Loaded gpg_backend")
+        end
 
-                    ## Homedir is the location of our GPG private keys
-                    ## default: ~/.gnupg
-                    homedir = Config[:gpg][:homedir] || ""
+        def debug (msg)
+            Hiera.debug("[gpg_backend]: #{msg}")
+        end
 
-                    plain = decrypt(gpgfile, homedir)
-
-                    if plain.empty?
-                        Hiera.debug("GPG decrypt returned empty string")
-                        next
-                    end
-
-                    data = YAML.load(plain)
-
-                    next if data.empty?
-                    next unless data.include?(key)
+        def warn (msg)
+            Hiera.warn("[gpg_backend]:  #{msg}")
+        end
 
 
-                    case resolution_type
-                        when :array
-                            answer << Backend.parse_answer(data[key], scope)
-                        else
-                            answer = Backend.parse_answer(data[key], scope)
-                            break
-                        end
-                    end
-                    return answer
-                
-            end
-         
+        def lookup(key, scope, order_override, resolution_type)
 
-            def decrypt (file, homedir)
-                # This should be tied in with the gpgme API, but for now
-                # we just shell this out to the gpg command, a future todo
-                # is to replace this.
-                #
+            debug("Lookup called, key #{key} resolution type is #{resolution_type}")
+            answer = Backend.empty_answer(resolution_type)
 
-                opts = ["--decrypt"]
-                if !homedir.empty?
-                    opts << "--homedir #{homedir}"
+            Backend.datasources(scope, order_override) do |source|
+                gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
+
+                # This should compute ~ on both *nix and *doze
+                homes = ["HOME", "HOMEPATH"]
+                real_home = homes.detect { |h| ENV[h] != nil }
+
+                ## key_dir is the location of our GPG private keys
+                ## default: ~/.gnupg
+                key_dir = Config[:gpg][:key_dir] || "#{ENV[real_home]}/.gnupg"
+
+                plain = decrypt(gpgfile, key_dir)
+                next if !plain
+                next if plain.empty?
+
+                data = YAML.load(plain)
+
+                case resolution_type
+                when :array
+                    debug("Appending answer array")
+                    answer << Backend.parse_answer(data[key], scope)
+                else
+                    debug("Assigning answer variable")
+                    answer = Backend.parse_answer(data[key], scope)
                 end
 
-                data = `/usr/bin/env gpg #{opts.join(" ")} < #{file} 2> /dev/null`
-                Hiera.debug("Return code of gpg command was #{$?}")
-                return data
+                return answer
+
+            end
+        end
+
+        def decrypt(file, gnupghome)
+
+            ENV["GNUPGHOME"]=gnupghome
+            debug("GNUPGHOME is #{ENV['GNUPGHOME']}")
+
+            ctx = GPGME::Ctx.new
+
+            open(file) do |cipher|
+                debug("loaded cipher: #{file}")
+
+                ctx = GPGME::Ctx.new
+
+                    if !ctx.keys.empty?
+                        raw = GPGME::Data.new(cipher)
+                        txt = GPGME::Data.new
+
+                        begin
+                            txt = ctx.decrypt(raw)
+                        rescue GPGME::Error::DecryptFailed
+                            warn("Warning: GPG Decryption failed, check your GPG settings")
+                        rescue
+                            warn("Warning: General exception decrypting GPG file")
+                        end
+                        
+                        txt.seek 0
+                        result = txt.read
+
+                        debug("result is a #{result.class} ctx #{ctx} txt #{txt}")
+                        return result
+                    else
+                        warn("No usable keys found in #{gnupghome}. Check :key_dir value in hiera.yaml is correct")
+                    end
+                end
             end
         end
     end
