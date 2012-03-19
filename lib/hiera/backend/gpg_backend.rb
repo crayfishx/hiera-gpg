@@ -21,22 +21,31 @@ class Hiera
             debug("Lookup called, key #{key} resolution type is #{resolution_type}")
             answer = Backend.empty_answer(resolution_type)
 
+            # This should compute ~ on both *nix and *doze
+            homes = ["HOME", "HOMEPATH"]
+            real_home = homes.detect { |h| ENV[h] != nil }
+
+            ## key_dir is the location of our GPG private keys
+            ## default: ~/.gnupg
+            key_dir = Config[:gpg][:key_dir] || "#{ENV[real_home]}/.gnupg"
+
+
             Backend.datasources(scope, order_override) do |source|
                 gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
-
-                # This should compute ~ on both *nix and *doze
-                homes = ["HOME", "HOMEPATH"]
-                real_home = homes.detect { |h| ENV[h] != nil }
-
-                ## key_dir is the location of our GPG private keys
-                ## default: ~/.gnupg
-                key_dir = Config[:gpg][:key_dir] || "#{ENV[real_home]}/.gnupg"
 
                 plain = decrypt(gpgfile, key_dir)
                 next if !plain
                 next if plain.empty?
+                debug("GPG decrypt returned valid data")
 
                 data = YAML.load(plain)
+                next if !data
+                next if data.empty?
+                debug ("Data contains valid YAML")
+
+                next unless data.include?(key)
+                debug ("Key #{key} found in YAML document, Passing answer to hiera")
+
 
                 case resolution_type
                 when :array
@@ -47,9 +56,8 @@ class Hiera
                     answer = Backend.parse_answer(data[key], scope)
                 end
 
-                return answer
-
             end
+            return answer
         end
 
         def decrypt(file, gnupghome)
