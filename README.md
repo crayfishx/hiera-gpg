@@ -25,7 +25,8 @@ Here is a sample hiera.yaml file that will work with gpg
    :datadir: /etc/puppet/hieradata
 
    # Optional, defaults to ~/.gnupg
-   :homedir: "/etc/puppet/gpg"
+   :key_dir: /etc/puppet/gpg
+   :key_id: dvader@death.star
 </pre>
 
 Todo
