@@ -54,6 +54,7 @@ class Hiera
                 else
                     debug("Assigning answer variable")
                     answer = Backend.parse_answer(data[key], scope)
+                    break
                 end
 
             end
