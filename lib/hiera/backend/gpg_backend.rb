@@ -46,14 +46,18 @@ class Hiera
                 next unless data.include?(key)
                 debug ("Key #{key} found in YAML document, Passing answer to hiera")
 
+                parsed_answer = Backend.parse_answer(data[key], scope)
 
                 case resolution_type
                 when :array
                     debug("Appending answer array")
-                    answer << Backend.parse_answer(data[key], scope)
+                    answer << parsed_answer
+                when :hash
+                    debug("Merging answer hash")
+                    answer = parsed_answer.merge answer
                 else
                     debug("Assigning answer variable")
-                    answer = Backend.parse_answer(data[key], scope)
+                    answer = parsed_answer
                     break
                 end
 
