@@ -38,12 +38,6 @@ GPG Back end
 hiera-gpg 0.1.0+ shells out to the command line and assumes that /usr/bin/env gpg is in your path.  As of 1.0 it uses the gpgme rubygem to do all the GPG related stuff.  If for any reason you have problems with gpgme then you may want to downgrade to the latest 0.x release.
 
 
-TODO
-====
-
-* Add hash support
-
-
 Further Reading
 ===============
 
