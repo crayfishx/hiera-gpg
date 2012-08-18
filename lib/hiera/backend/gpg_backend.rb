@@ -49,18 +49,18 @@ class Hiera
                 parsed_answer = Backend.parse_answer(data[key], scope)
 
                 begin
-	                case resolution_type
-	                when :array
-	                    debug("Appending answer array")
-	                    answer << parsed_answer
-	                when :hash
-	                    debug("Merging answer hash")
-	                    answer = parsed_answer.merge answer
-	                else
-	                    debug("Assigning answer variable")
-	                    answer = parsed_answer
-	                    break
-	                end
+                    case resolution_type
+                    when :array
+                        debug("Appending answer array")
+                        answer << parsed_answer
+                    when :hash
+                        debug("Merging answer hash")
+                        answer = parsed_answer.merge answer
+                    else
+                        debug("Assigning answer variable")
+                        answer = parsed_answer
+                        break
+                    end
                 rescue NoMethodError
                     raise Exception, "Resolution type is #{resolution_type} but parsed_answer is a #{parsed_answer.class}"
                 end
