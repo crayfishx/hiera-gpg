@@ -19,7 +19,7 @@ class Hiera
         def lookup(key, scope, order_override, resolution_type)
 
             debug("Lookup called, key #{key} resolution type is #{resolution_type}")
-            answer = Backend.empty_answer(resolution_type)
+            answer = nil
 
             # This should compute ~ on both *nix and *doze
             homes = ["HOME", "HOMEPATH"]
@@ -52,9 +52,11 @@ class Hiera
 	                case resolution_type
 	                when :array
 	                    debug("Appending answer array")
+                            answer ||= []
 	                    answer << parsed_answer
 	                when :hash
 	                    debug("Merging answer hash")
+                            answer ||= {}
 	                    answer = parsed_answer.merge answer
 	                else
 	                    debug("Assigning answer variable")
