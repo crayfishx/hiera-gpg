@@ -19,7 +19,7 @@ class Hiera
         def lookup(key, scope, order_override, resolution_type)
 
             debug("Lookup called, key #{key} resolution type is #{resolution_type}")
-            answer = Backend.empty_answer(resolution_type)
+            answer = nil
 
             # This should compute ~ on both *nix and *doze
             homes = ["HOME", "HOMEPATH"]
@@ -49,18 +49,22 @@ class Hiera
                 parsed_answer = Backend.parse_answer(data[key], scope)
 
                 begin
-	                case resolution_type
-	                when :array
-	                    debug("Appending answer array")
-	                    answer << parsed_answer
-	                when :hash
-	                    debug("Merging answer hash")
-	                    answer = parsed_answer.merge answer
-	                else
-	                    debug("Assigning answer variable")
-	                    answer = parsed_answer
-	                    break
-	                end
+                    case resolution_type
+                    when :array
+                        debug("Appending answer array")
+                        raise Exception, "Hiera type mismatch: expected Array and got #{parsed_answer.class}" unless parsed_answer.kind_of? Array or parsed_answer.kind_of? String
+                        answer ||= []
+                        answer << parsed_answer
+                    when :hash
+                        debug("Merging answer hash")
+                        raise Exception, "Hiera type mismatch: expected Hash and got #{parsed_answer.class}" unless parsed_answer.kind_of? Hash
+                        answer ||= {}
+                        answer = parsed_answer.merge answer
+                    else
+                        debug("Assigning answer variable")
+                        answer = parsed_answer
+                        break
+                    end
                 rescue NoMethodError
                     raise Exception, "Resolution type is #{resolution_type} but parsed_answer is a #{parsed_answer.class}"
                 end
