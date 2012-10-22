@@ -3,7 +3,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |gem|
     gem.name = "hiera-gpg"
-    gem.version = "1.0.3"
+    gem.version = "1.1.0"
     gem.summary = "GPG backend for Hiera"
     gem.email = "craig@craigdunn.org"
     gem.author = "Craig Dunn"
