@@ -16,6 +16,36 @@ class Hiera
         end
 
 
+        def parse_string(data, scope, extra_data={})
+          return nil unless data
+
+          tdata = data.clone
+
+          if tdata.is_a?(String)
+            while tdata =~ /%\{(.+?)\}/
+              begin
+                var = $1
+
+                val = ""
+
+                # Puppet can return :undefined for unknown scope vars,
+                # If it does then we still need to evaluate extra_data
+                # before returning an empty string.
+                if scope[var] && scope[var] != :undefined
+                    val = scope[var]
+                elsif extra_data[var]
+                    val = extra_data[var]
+                end
+              end until val != "" || var !~ /::(.+)/
+
+              tdata.gsub!(/%\{(::)?#{var}\}/, val)
+            end
+          end
+
+          return tdata
+        end
+
+
         def lookup(key, scope, order_override, resolution_type)
 
             debug("Lookup called, key #{key} resolution type is #{resolution_type}")
@@ -27,8 +57,7 @@ class Hiera
 
             ## key_dir is the location of our GPG private keys
             ## default: ~/.gnupg
-            key_dir = Config[:gpg][:key_dir] || "#{ENV[real_home]}/.gnupg"
-
+            key_dir = parse_string(Config[:gpg][:key_dir], scope) || "#{ENV[real_home]}/.gnupg"
 
             Backend.datasources(scope, order_override) do |source|
                 gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
