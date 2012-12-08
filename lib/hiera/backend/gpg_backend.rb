@@ -27,7 +27,7 @@ class Hiera
 
             ## key_dir is the location of our GPG private keys
             ## default: ~/.gnupg
-            key_dir = Config[:gpg][:key_dir] || "#{ENV[real_home]}/.gnupg"
+            key_dir = Backend.parse_string(Config[:gpg][:key_dir], scope) || "#{ENV[real_home]}/.gnupg"
 
 
             Backend.datasources(scope, order_override) do |source|
