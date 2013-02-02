@@ -17,7 +17,6 @@ class Hiera
 
 
       def lookup(key, scope, order_override, resolution_type)
-
         debug("Lookup called, key #{key} resolution type is #{resolution_type}")
         answer = nil
 
@@ -28,7 +27,6 @@ class Hiera
         ## key_dir is the location of our GPG private keys
         ## default: ~/.gnupg
         key_dir = Backend.parse_string(Config[:gpg][:key_dir], scope) || "#{ENV[real_home]}/.gnupg"
-
 
         Backend.datasources(scope, order_override) do |source|
           gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
