@@ -4,7 +4,7 @@ class Hiera
 
       def initialize
         require 'gpgme'
-        debug ("Loaded gpg_backend")
+        debug("Loaded gpg_backend")
       end
 
       def debug (msg)
@@ -41,10 +41,10 @@ class Hiera
           data = YAML.load(plain)
           next if !data
           next if data.empty?
-          debug ("Data contains valid YAML")
+          debug("Data contains valid YAML")
 
           next unless data.include?(key)
-          debug ("Key #{key} found in YAML document, Passing answer to hiera")
+          debug("Key #{key} found in YAML document, Passing answer to hiera")
 
           parsed_answer = Backend.parse_answer(data[key], scope)
 
