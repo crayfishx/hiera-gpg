@@ -12,7 +12,7 @@ class Hiera
       end
 
       def warn (msg)
-        Hiera.warn("[gpg_backend]:  #{msg}")
+        Hiera.warn("[gpg_backend]: #{msg}")
       end
 
 
