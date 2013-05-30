@@ -4,6 +4,8 @@ class Hiera
 
         def initialize 
             require 'gpgme'
+            @data  = Hash.new
+            @cache = Hash.new
             debug ("Loaded gpg_backend")
         end
 
@@ -33,12 +35,22 @@ class Hiera
             Backend.datasources(scope, order_override) do |source|
                 gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
 
-                plain = decrypt(gpgfile, key_dir)
-                next if !plain
-                next if plain.empty?
-                debug("GPG decrypt returned valid data")
+                unless @data.has_key?(gpgfile) or !stale?(gpgfile)
+                    plain = decrypt(gpgfile, key_dir)
+                    
+                    next if !plain
+                    next if !plain.kind_of?(String)
+                    next if plain.empty? 
+                    debug("GPG decrypt returned valid data")
+                    
+                    begin
+                        @data[gpgfile] = YAML.load(plain)
+                    rescue
+                        @data[gpgfile] = {}
+                    end
+                end
 
-                data = YAML.load(plain)
+                data = @data[gpgfile]
                 next if !data
                 next if data.empty?
                 debug ("Data contains valid YAML")
@@ -106,6 +118,18 @@ class Hiera
                         warn("No usable keys found in #{gnupghome}. Check :key_dir value in hiera.yaml is correct")
                     end
                 end
+            end
+            
+            def stale?(gpgfile)
+                # NOTE: The mtime change in a file MUST be > 1 second before being
+                #       recognized as stale. File mtime changes within 1 second will
+                #       not be recognized.
+                stat    = File.stat(gpgfile)
+                current = { 'inode' => stat.ino, 'mtime' => stat.mtime, 'size' => stat.size }
+                return false if @cache[gpgfile] == current
+        
+                @cache[gpgfile] = current
+                return true
             end
         end
     end
