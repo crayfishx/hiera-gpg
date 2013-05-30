@@ -118,21 +118,19 @@ class Hiera
                         warn("No usable keys found in #{gnupghome}. Check :key_dir value in hiera.yaml is correct")
                     end
                 end
-            end
-            
-            def stale?(gpgfile)
-                # NOTE: The mtime change in a file MUST be > 1 second before being
-                #       recognized as stale. File mtime changes within 1 second will
-                #       not be recognized.
-                stat    = File.stat(gpgfile)
-                current = { 'inode' => stat.ino, 'mtime' => stat.mtime, 'size' => stat.size }
-                return false if @cache[gpgfile] == current
-        
-                @cache[gpgfile] = current
-                return true
-            end
+        end       
+           
+        def stale?(gpgfile)
+            # NOTE: The mtime change in a file MUST be > 1 second before being
+            #       recognized as stale. File mtime changes within 1 second will
+            #       not be recognized.
+            stat    = File.stat(gpgfile)
+            current = { 'inode' => stat.ino, 'mtime' => stat.mtime, 'size' => stat.size }
+            return false if @cache[gpgfile] == current
+    
+            @cache[gpgfile] = current
+            return true
+        end
         end
     end
 end
-
-
