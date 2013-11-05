@@ -87,7 +87,12 @@ class Hiera
 
         def decrypt(file, gnupghome)
 
-            ENV["GNUPGHOME"]=gnupghome
+            if gnupghome.kind_of?(Array)
+                ENV["GNUPGHOME"]=gnupghome[0]
+            else
+                ENV["GNUPGHOME"]=gnupghome
+            end
+            
             debug("GNUPGHOME is #{ENV['GNUPGHOME']}")
 
             ctx = GPGME::Ctx.new
