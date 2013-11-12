@@ -46,6 +46,7 @@ class Hiera
                     begin
                         @data[gpgfile] = YAML.load(plain)
                     rescue
+                        warn("YAML decoding data in #{gpgfile} failed")
                         @data[gpgfile] = {}
                     end
                 end
