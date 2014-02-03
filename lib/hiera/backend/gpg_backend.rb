@@ -88,7 +88,8 @@ class Hiera
 
         def decrypt(file, gnupghome)
 
-            ENV["GNUPGHOME"]=gnupghome
+            gnupghome_backup = ENV["GNUPGHOME"]
+            ENV["GNUPGHOME"] = gnupghome
             debug("GNUPGHOME is #{ENV['GNUPGHOME']}")
 
             ctx = GPGME::Ctx.new
@@ -108,6 +109,8 @@ class Hiera
                             warn("Warning: GPG Decryption failed, check your GPG settings")
                         rescue
                             warn("Warning: General exception decrypting GPG file")
+                        ensure
+                            ENV["GNUPGHOME"] = gnupghome_backup
                         end
                         
                         txt.seek 0
