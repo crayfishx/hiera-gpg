@@ -117,6 +117,7 @@ class Hiera
                         return result
                     else
                         warn("No usable keys found in #{gnupghome}. Check :key_dir value in hiera.yaml is correct")
+                        nil
                     end
                 end
         end       
