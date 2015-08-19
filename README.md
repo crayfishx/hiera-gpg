@@ -1,3 +1,11 @@
+DEPRECATION NOTICE - END OF LIFE:
+
+Please note that this project is now considered end-of-life and is no longer actively maintained.  Hiera-eyaml provides a much nicer implementation of encrypted hiera data and should be used instead of hiera-gpg.
+
+If anyone feels like they would like to continue with this project and maintain please contact craig@craigdunn.org
+
+
+
 Introduction
 ============
 
