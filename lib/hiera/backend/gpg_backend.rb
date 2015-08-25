@@ -33,7 +33,7 @@ class Hiera
 
 
             Backend.datasources(scope, order_override) do |source|
-                gpgfile = Backend.datafile(:gpg, scope, source, "gpg") || next
+                gpgfile = Backend.datafile(:gpg, scope, source, "yaml.gpg") || next
 
                 unless @data.has_key?(gpgfile) and !stale?(gpgfile)
                     plain = decrypt(gpgfile, key_dir)
